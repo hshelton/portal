@@ -40,16 +40,17 @@ session_start();
 if ($_GET['id']) {
   $_SESSION['id'] = $_GET['id'];
 } else {
-  echo "Direct Access is not allowed";
-  exit();
+  echo "No session id coming in. Traffic not from Unify AP";
+  //exit();
 }
 
 if ($_GET['url']) {
   $_SESSION['url'] = $_GET['url'];
 } else {
-  $_SESSION['url'] = 'http://www.google.com';
+  $_SESSION['url'] = 'http://sudancetv.com';
 }
 
+  echo "SESSION URL: " . $_SESSION['url']
 // Display the login form
 ?>
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
