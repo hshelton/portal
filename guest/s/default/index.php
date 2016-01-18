@@ -468,8 +468,8 @@ function verifyConnect()
 		$("#loading").removeClass("hidden");
 		$(".sundance-form").hide();
 		$(".caption").hide();
-		$("#input").submit();
-		/*
+		//$("#input").submit();
+		
 		 $.ajax({
 	          type: 'POST',
 	          url: 'authorize.php',
@@ -478,10 +478,42 @@ function verifyConnect()
 		        console.log(data);
 		        if(receiveNewsletters)
 		        {
-			       //enroll();
+		        	try
+		        	{
+
+
+		        	  	//fix AT&T special case
+		        	  	var mso = f== "ATT"? "AT&T" : f;
+		        	      var newsletters = ["17851"];
+		        	      var data = {
+		        	          sweeps: 26065,
+		        	          mso: mso,
+		        	          fname: $("#first-name").val(),
+		        	          lname: $("#last-name").val(),
+		        	          email: $("#email").val(),
+		        	          url: window.location.href,
+		        	          pageTitle: "Sundance TV Wifi",
+		        	          newsletters: newsletters,
+		        	          ga_campaign: "sff-2016-newsletter-signup",
+		        	          ga_source: "sundancetv-hq",
+		        	          ga_medium: "wifi"
+		        	      };
+		        	  
+		        	      $.post("http://www.sundance.tv/users/auth/endai.enqueue.sweeps", data, function (results) {
+		        	         //alert("remove before production: results from newsletter api call: " + results.msg)
+		        	         window.location = "http://sundance.tv";
+		        	     
+		        	      });
+
+		        	}
+		        	catch(error)
+		        	{
+		        	  alert(error); 
+		        	  window.location ="http://www.sundance.tv";
+		        	}
 		
 			    
-                    window.location = "http://sundance.tv";
+                    
                       
 			    
 	          	}
@@ -495,7 +527,7 @@ function verifyConnect()
 		        }
 	        }
 		 });
-		 */
+		 
 	}
 }
 

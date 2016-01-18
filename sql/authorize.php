@@ -3,9 +3,9 @@
  * email: andrewniemants@gmail.com
  * website: http://www.rimrockhosting.com
  *
- * This code is on Github: https://github.com/kaptk2/portal
+ * This code is on github: https://github.com/kaptk2/portal
  *
- * Copyright (c) 2015, Andrew Niemantsverdriet <andrewniemants@gmail.com>
+ * Copyright (c) 2012, Andrew Niemantsverdriet
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,26 +31,94 @@
  * The views and conclusions contained in the software and documentation are those
  * of the authors and should not be interpreted as representing official policies, 
  * either expressed or implied, of the FreeBSD Project.
-*/
+ */
 
-require_once('./config.php');
+// Start the session to get access to the saved variables
+session_start();
 
-if ($_POST) { // Check to see if the form has been posted to
-  // Set and sanitze the posted variables
-  $user = preg_replace("/[^a-zA-Z0-9.]/", "", $_POST['username']);
-  $pass = $_POST['password'];
 
-  if ($_POST['terms'] == 'yes') {
-    // See if the user exists in SQL
-    if (authorizeSQL($user, $pass)) {
-      sendAuthorization($_SESSION['id'], '480', $unifi);
-      echo "<script type='text/javascript'>$(location).attr('href','".$_SESSION['url']."');</script>";
-      echo ("Successfuly Connected");
-    } else {
-      echo "Couldn't authorize user please try again or use the contact form for additional assistance.";
-    }
-  } else {
-    echo "You must accept the terms of service";
+
+function sendAuthorization($id, $minutes) {
+    
+    // Unifi Connection details
+    
+    $unifyServer = "https://66.29.173.250:8443";
+    $unifyUser = "admin";
+    $unifyPass =  "P@ss4sundance";
+    
+   echo "Initialzed CURL <br>";
+  // Start Curl for login
+  $ch = curl_init();
+
+  // We are posting data
+  curl_setopt($ch, CURLOPT_POST, TRUE);
+  // Set up cookies
+  $cookie_file = "/tmp/unifi_cookie";
+  curl_setopt($ch, CURLOPT_COOKIEJAR, $cookie_file);
+  curl_setopt($ch, CURLOPT_COOKIEFILE, $cookie_file);
+  // Allow Self Signed Certs
+  curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+  curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+  curl_setopt($ch, CURLOPT_SSLVERSION, 1);
+  // Login to the UniFi controller
+  curl_setopt($ch, CURLOPT_URL, $unifyServer. "/api/login");
+  echo "Logging into unifi controller at url: " . $unifyServer."/api/login <br>";
+      
+  $data = json_encode(array("username" => $unifyUser,"password" => $unifyPass));
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+  $content = curl_exec ($ch);
+  if (FALSE === $content)
+  {
+      echo "<br> <span style=\"color:red;\">" . curl_error($ch). curl_errno($ch) . "</span>";
   }
+  echo "<br> CURL COMMAND EXECUTED";
+  // Send user to authorize and the time allowed
+  $data = json_encode(array(
+          'cmd'=>'authorize-guest',
+          'mac'=>$id,
+          'minutes'=>$minutes));
+
+  // Make the API Call
+  echo "<br> MAKING API CALL";
+  curl_setopt($ch, CURLOPT_URL, $unifyServer.'/api/s/default/cmd/stamgr');
+  curl_setopt($ch, CURLOPT_POSTFIELDS, 'json='.$data);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+  curl_exec ($ch);
+  echo "<br> CURL COMMAND EXECUTED";
+  
+  // Logout of the connection
+  echo "<br> CLOSING UNIFI CONNECTION";
+  curl_setopt($ch, CURLOPT_URL, $unifyServer."/logout");
+  
+  $content = curl_exec ($ch);
+      if (FALSE === $content)
+      {
+          echo "<br> <span style=\"color:red\"" . curl_error($ch). curl_errno($ch) ."</span>";
+      }
+         
+  
+      
+  curl_close ($ch);
+  echo "<br> CURL COMMAND EXECUTED";
+  
+  //sleep(10); // Small sleep to allow controller time to authorize
 }
+
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    
+    
+    sendAuthorization($_SESSION['id'], (72 *60));
+}
+
+
 ?>
+<!DOCTYPE html><html lang="en">
+<head>
+
+<meta charset="UTF-8">
+
+</head>
+<body>
+</body>
+</html>
